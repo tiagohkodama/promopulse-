@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: promopulse-db
+    environment:
+      POSTGRES_DB: promopulse
+      POSTGRES_USER: promopulse
+      POSTGRES_PASSWORD: promopulse
+    ports:
+      - "5432:5432"
+    volumes:
+      - promopulse_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U promopulse -d promopulse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: promopulse-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # ---- Application Info ----
+      APP_NAME: "PromoPulse API"
+      ENVIRONMENT: "production"
+      APP_VERSION: "0.1.0"
+      LOG_LEVEL: "INFO"
+
+      # ---- Database ----
+      DATABASE_URL: "postgresql+asyncpg://promopulse:promopulse@db:5432/promopulse"
+      
+      # ---- Future placeholders ----
+      # (will be used when encryption, rate limiting, etc. are implemented)
+      PII_ENCRYPTION_KEY: "SET_IN_FUTURE"
+      RATE_LIMIT_WINDOW: "60"
+      RATE_LIMIT_MAX_EVENTS: "100"
+
+    ports:
+      - "8000:8000"
+
+volumes:
+  promopulse_db_data:
