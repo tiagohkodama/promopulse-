@@ -11,7 +11,7 @@ requires-python = ">=3.12"
 license = { text = "MIT" }
 
 authors = [
-  { name="PromoPulse Team", email="dev@promopulse.local" }
+  { name = "PromoPulse Team", email = "dev@promopulse.local" }
 ]
 
 dependencies = [
@@ -19,6 +19,9 @@ dependencies = [
   "uvicorn[standard]",
   "pydantic-settings",
   "python-dotenv",
+  "sqlalchemy[asyncio]",
+  "asyncpg",
+  "alembic",
 ]
 
 [project.optional-dependencies]
@@ -31,4 +34,5 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["promopulse"]
+where = ["."]
+include = ["promopulse*"]

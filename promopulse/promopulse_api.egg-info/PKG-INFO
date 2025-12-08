@@ -1,3 +1,25 @@
+Metadata-Version: 2.4
+Name: promopulse-api
+Version: 0.1.0
+Summary: PromoPulse API – Promotion & Engagement Platform
+Author-email: PromoPulse Team <dev@promopulse.local>
+License: MIT
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi
+Requires-Dist: uvicorn[standard]
+Requires-Dist: pydantic-settings
+Requires-Dist: python-dotenv
+Requires-Dist: sqlalchemy[asyncio]
+Requires-Dist: asyncpg
+Requires-Dist: alembic
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: httpx; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+
 # PromoPulse API – Promotion & Engagement Platform (Python + FastAPI)
 
 PromoPulse is a backend service built with **Python**, designed for managing **promotional campaigns**, **user subscriptions**, and **event engagement tracking** (views, clicks, redemptions, etc.).  

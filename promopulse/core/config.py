@@ -1,4 +1,5 @@
 from functools import lru_cache
+
 from pydantic_settings import BaseSettings
 
 
@@ -8,8 +9,10 @@ class AppSettings(BaseSettings):
     version: str = "0.1.0"
     log_level: str = "INFO"
 
-    # Placeholder for later DB usage
-    database_url: str = "postgresql+asyncpg://postgres:postgres@db:5432/promopulse"
+    # Async SQLAlchemy URL (overridable via env: DATABASE_URL)
+    database_url: str = (
+        "postgresql+asyncpg://promopulse:promopulse@db:5432/promopulse"
+    )
 
     class Config:
         env_file = ".env"

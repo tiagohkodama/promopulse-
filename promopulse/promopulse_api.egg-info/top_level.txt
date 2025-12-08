@@ -1,0 +1,6 @@
+api
+app
+core
+db
+domain
+infrastructure

@@ -43,6 +43,7 @@ COPY --from=builder /install /usr/local
 COPY promopulse ./promopulse
 COPY pyproject.toml .
 COPY README.md .
+COPY alembic.ini .
 
 USER appuser
 
