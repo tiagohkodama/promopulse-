@@ -7,6 +7,7 @@ from sqlalchemy import text
 from promopulse.api import api_router
 from promopulse.core.config import get_settings
 from promopulse.core.logging import setup_logging
+from promopulse.core.security import get_encryption_service
 from promopulse.db import get_engine
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,21 @@ async def lifespan(app: FastAPI):
             extra={"correlation_id": "-"},
         )
         # Optionally: raise here to hard-fail startup
+
+    # PII encryption service initialization (fail fast if misconfigured)
+    try:
+        get_encryption_service()
+        logger.info(
+            "PII encryption service initialized successfully",
+            extra={"correlation_id": "-"},
+        )
+    except Exception:
+        logger.exception(
+            "Failed to initialize PII encryption service",
+            extra={"correlation_id": "-"},
+        )
+        # This is a hard requirement: crash early if encryption cannot be used.
+        raise
 
     # Startup logic here
     yield

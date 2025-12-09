@@ -35,20 +35,27 @@ This project emphasizes **real-world engineering skills** through:
 
 | Category | Technology |
 |----------|------------|
-| Language | Python 3.12+
-| Web Framework | FastAPI (async)
-| Database | PostgreSQL + SQLAlchemy (async) + Alembic
-| Messaging | In-memory queue (optional: Redis or AWS SQS)
-| Testing | pytest, pytest-asyncio, httpx, unittest.mock
-| Encryption | cryptography (Fernet)
-| Containerization | Docker + Docker Compose
-| Optional Serverless | FastAPI on AWS Lambda via Mangum
+| Language | Python 3.12+ |
+| Web Framework | FastAPI (async) |
+| Database | PostgreSQL + SQLAlchemy (async) + Alembic |
+| Messaging | In-memory queue (optional: Redis or AWS SQS) |
+| Testing | pytest, pytest-asyncio, httpx, unittest.mock |
+| Encryption | cryptography (Fernet) |
+| Containerization | Docker + Docker Compose |
+| Optional Serverless | FastAPI on AWS Lambda via Mangum |
 
 ---
 
 ## 📐 Architecture Overview
 
-promopulse/ app/ api/                # Routers core/               # Config, Security (PII Encryption) db/                 # Models, Session, Migrations domain/             # Business rules (Entities + Services) infrastructure/     # Repositories, Queue, Workers tests/                # Unit + Integration docker/               # Compose / Dockerfile README.md
+promopulse/ app/ api/                # Routers  
+core/               # Config, Security (PII Encryption)  
+db/                 # Models, Session, Migrations  
+domain/             # Business rules (Entities + Services)  
+infrastructure/     # Repositories, Queue, Workers  
+tests/              # Unit + Integration  
+docker/             # Compose / Dockerfile  
+README.md
 
 🧠 **Design Principles**
 - Clean organization by domain
@@ -64,7 +71,7 @@ promopulse/ app/ api/                # Routers core/               # Config, Sec
 
 | Table | Purpose |
 |-------|---------|
-| `users` | PII encrypted | 
+| `users` | PII encrypted |
 | `promotions` | Campaign definitions |
 | `subscriptions` | Links users to promotions |
 | `events` | Incoming engagement events |
@@ -93,10 +100,11 @@ promopulse/ app/ api/                # Routers core/               # Config, Sec
 
 ## 🔐 Security Applied
 
-- AES-based encryption of PII fields
-- Private key via environment variables (KMS-like workflow)
-- Safe serialization/deserialization
-- JWT support can be added as optional module
+- PII encryption using **`cryptography.Fernet`** (symmetric authenticated encryption)
+- Encryption key provided via the **`PII_ENCRYPTION_KEY`** environment variable
+- Key never logged; PII should not be logged in plaintext
+- Encryption service initialized on startup – app fails fast if key is missing or invalid
+- JWT support can be added later as an optional module
 
 ---
 
@@ -117,16 +125,9 @@ promopulse/ app/ api/                # Routers core/               # Config, Sec
 - Docker & Docker Compose
 - Python 3.12+
 
-### **Setup**
+### **Generate an Encryption Key**
+
+Use `cryptography.Fernet` to generate a valid key:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/promopulse-api.git
-cd promopulse-api
-docker-compose up -d
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e .
-alembic upgrade head
-uvicorn app.main:app --reload
-
-📌 Swagger UI: http://localhost:8000/docs
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"

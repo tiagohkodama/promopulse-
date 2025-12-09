@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings
 
 
@@ -13,6 +14,10 @@ class AppSettings(BaseSettings):
     database_url: str = (
         "postgresql+asyncpg://promopulse:promopulse@db:5432/promopulse"
     )
+
+    # PII encryption key (Fernet, urlsafe-base64 32-byte key)
+    # Env var: PII_ENCRYPTION_KEY
+    pii_encryption_key: SecretStr | None = None
 
     class Config:
         env_file = ".env"

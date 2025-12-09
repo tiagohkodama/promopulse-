@@ -38,7 +38,7 @@ services:
       
       # ---- Future placeholders ----
       # (will be used when encryption, rate limiting, etc. are implemented)
-      PII_ENCRYPTION_KEY: "SET_IN_FUTURE"
+      PII_ENCRYPTION_KEY: "elc59cqN98MZ6eoTgpD6VcqIoVclnCD8hiuBeGvJZPg="
       RATE_LIMIT_WINDOW: "60"
       RATE_LIMIT_MAX_EVENTS: "100"
 

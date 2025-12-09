@@ -8,11 +8,13 @@ promopulse/app/main.py
 promopulse/core/__init__.py
 promopulse/core/config.py
 promopulse/core/logging.py
+promopulse/core/security.py
 promopulse/db/__init__.py
 promopulse/db/session.py
 promopulse/db/migrations/__init__.py
 promopulse/db/migrations/env.py
 promopulse/db/migrations/versions/20241208_0001_baseline.py
+promopulse/db/migrations/versions/652e60e2bfd9_add_users_table.py
 promopulse/db/migrations/versions/__init__.py
 promopulse/db/models/__init__.py
 promopulse/db/models/base.py
