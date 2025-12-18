@@ -27,7 +27,6 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     logger.info("Application starting up", extra={"correlation_id": "-"})
 
-    # Optional: DB connectivity sanity check
     engine = get_engine()
     try:
         async with engine.begin() as conn:
@@ -41,7 +40,6 @@ async def lifespan(app: FastAPI):
             "Database connectivity check failed",
             extra={"correlation_id": "-"},
         )
-        # Optionally: raise here to hard-fail startup
 
     # PII encryption service initialization (fail fast if misconfigured)
     try:

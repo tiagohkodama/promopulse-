@@ -10,7 +10,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install build tools (needed later for DB/crypto libs)
+# Install build tools
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
     && rm -rf /var/lib/apt/lists/*
 
@@ -42,7 +42,6 @@ COPY --from=builder /install /usr/local
 # Copy application code (for runtime)
 COPY promopulse ./promopulse
 COPY pyproject.toml .
-COPY README.md .
 COPY alembic.ini .
 
 USER appuser

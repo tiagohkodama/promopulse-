@@ -1,1 +1,1 @@
-# Domain entities and business logic live here.
+# Empty file to make it a package

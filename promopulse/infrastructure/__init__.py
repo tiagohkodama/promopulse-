@@ -1,1 +1,1 @@
-# Infrastructure: repositories, external services, queues, etc.
+# Empty file to make it a package

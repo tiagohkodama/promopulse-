@@ -131,3 +131,9 @@ Use `cryptography.Fernet` to generate a valid key:
 
 ```bash
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+### **Access DB via terminal**
+```bash
+docker exec -it promopulse-db psql -U promopulse -d promopulse
+```

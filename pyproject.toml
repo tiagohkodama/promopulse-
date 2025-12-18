@@ -23,6 +23,7 @@ dependencies = [
   "asyncpg",
   "alembic",
   "cryptography",
+  "email-validator",
 ]
 
 [project.optional-dependencies]
