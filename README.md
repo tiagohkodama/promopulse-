@@ -39,9 +39,84 @@ promopulse/
 ## Current Database Schema
 
 - **users**: User information with encrypted email addresses
+- **promotions**: Promotional campaigns with lifecycle management (draft/active/ended)
 - **alembic_version**: Migration tracking (managed by Alembic)
 
-Additional tables (promotions, subscriptions, events) are planned for future development.
+## Features
+
+### Promotions Management
+
+The API supports managing promotional campaigns with a robust lifecycle state machine.
+
+#### Promotion States
+
+Promotions follow a one-way lifecycle:
+
+```
+DRAFT → ACTIVE → ENDED
+```
+
+- **DRAFT**: Initial state, all fields editable, promotion not yet live
+- **ACTIVE**: Running promotion, limited editing (name/description only)
+- **ENDED**: Completed promotion, read-only, no further modifications
+
+**Important**: State transitions are manual (via API calls) and cannot be reversed. This ensures clear audit trails and prevents accidental modifications to live campaigns.
+
+#### API Endpoints
+
+- `POST /promotions` - Create new promotion (starts in DRAFT)
+- `GET /promotions/{id}` - Get promotion by ID
+- `GET /promotions?status={status}` - List promotions (filterable by status)
+- `PATCH /promotions/{id}` - Update promotion fields (restrictions apply)
+- `POST /promotions/{id}/status` - Change promotion status
+
+#### Field Edit Restrictions
+
+Different fields are editable depending on the promotion's current state:
+
+| Status | Editable Fields |
+|--------|----------------|
+| DRAFT  | All fields (name, description, start_at, end_at) |
+| ACTIVE | Limited (name, description only) |
+| ENDED  | None (read-only) |
+
+#### Validation Rules
+
+- **Time Range**: `end_at` must be after `start_at`
+- **State Transitions**: Must follow DRAFT → ACTIVE → ENDED (cannot skip states or move backwards)
+- **Invalid Operations**: Return descriptive 422 errors with clear messages
+
+#### Example Usage
+
+```bash
+# Create a promotion
+curl -X POST http://localhost:8000/promotions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Summer Sale",
+    "description": "Get 20% off everything",
+    "start_at": "2026-06-01T00:00:00Z",
+    "end_at": "2026-06-30T23:59:59Z"
+  }'
+
+# List all draft promotions
+curl "http://localhost:8000/promotions?status=draft"
+
+# Activate a promotion
+curl -X POST http://localhost:8000/promotions/1/status \
+  -H "Content-Type: application/json" \
+  -d '{"status": "active"}'
+
+# Update description (allowed in ACTIVE state)
+curl -X PATCH http://localhost:8000/promotions/1 \
+  -H "Content-Type: application/json" \
+  -d '{"description": "New description"}'
+
+# End a promotion
+curl -X POST http://localhost:8000/promotions/1/status \
+  -H "Content-Type: application/json" \
+  -d '{"status": "ended"}'
+```
 
 ## Getting Started
 
