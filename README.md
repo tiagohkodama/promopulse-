@@ -1,139 +1,213 @@
-# PromoPulse API – Promotion & Engagement Platform (Python + FastAPI)
+# PromoPulse API
 
-PromoPulse is a backend service built with **Python**, designed for managing **promotional campaigns**, **user subscriptions**, and **event engagement tracking** (views, clicks, redemptions, etc.).  
-This project emphasizes **real-world engineering skills** through:
+A FastAPI-based backend service for managing promotional campaigns, user subscriptions, and engagement tracking. Built as a portfolio project to demonstrate practical Python backend development skills.
 
-- Robust **relational modeling** (PostgreSQL)
-- Clean and maintainable **REST API architecture**
-- **Asynchronous processing** with idempotency
-- **Event queue + DLQ + retries**
-- **Security applied to PII** (encryption)
-- **Testing and mocking in depth**
-- **Data structures** (hash maps, queues) used for efficient tracking
+## What This Project Does
 
-> The project is intentionally structured as a **professional portfolio repository**, showcasing practical engineering decisions over academic abstractions.
+This is an API for handling promotional campaigns and tracking user engagement. The main features currently implemented:
 
----
+- User management with encrypted PII (email addresses)
+- Database migrations that run automatically on startup
+- Async database operations using SQLAlchemy
+- Clean project structure with separation of concerns
 
-## 🚀 Features
+The project is designed to be extended with additional features like event processing, rate limiting, and analytics.
 
-| Feature | Description |
-|--------|-------------|
-| 👥 Users | Create users with encrypted personal data (PII) |
-| 🎯 Promotions | Manage marketing campaigns (active, draft, ended) |
-| 🔐 Subscriptions | Link users to promotions with validation rules |
-| 📊 Events | Receive and process engagement events (VIEW, CLICK, REDEEM) |
-| 🧾 Idempotency | Prevent duplicated event processing |
-| 🪣 DLQ & Retry | Failed events are retried, then sent to a Dead Letter Queue |
-| 📈 Stats | Fast engagement analytics using in-memory hash maps |
-| 🔒 PII Security | Encrypt email and phone fields before persisting |
-| 🧮 Algorithms | Sliding window rate-limiting + dict aggregation |
+## Tech Stack
 
----
+- **Python 3.12+** with FastAPI
+- **PostgreSQL** for data storage
+- **SQLAlchemy** (async) for ORM
+- **Alembic** for database migrations
+- **Docker & Docker Compose** for containerization
+- **Cryptography** (Fernet) for PII encryption
 
-## 🧱 Tech Stack
+## Project Structure
 
-| Category | Technology |
-|----------|------------|
-| Language | Python 3.12+ |
-| Web Framework | FastAPI (async) |
-| Database | PostgreSQL + SQLAlchemy (async) + Alembic |
-| Messaging | In-memory queue (optional: Redis or AWS SQS) |
-| Testing | pytest, pytest-asyncio, httpx, unittest.mock |
-| Encryption | cryptography (Fernet) |
-| Containerization | Docker + Docker Compose |
-| Optional Serverless | FastAPI on AWS Lambda via Mangum |
+```
+promopulse/
+├── app/
+│   ├── api/              # API routes and endpoints
+│   ├── core/             # Configuration and security
+│   ├── db/               # Database models and migrations
+│   ├── domain/           # Business logic
+│   └── infrastructure/   # External services (repos, queues)
+├── docker/               # Dockerfile and entrypoint script
+└── tests/                # Tests
+```
 
----
+## Current Database Schema
 
-## 📐 Architecture Overview
+- **users**: User information with encrypted email addresses
+- **alembic_version**: Migration tracking (managed by Alembic)
 
-promopulse/ app/ api/                # Routers  
-core/               # Config, Security (PII Encryption)  
-db/                 # Models, Session, Migrations  
-domain/             # Business rules (Entities + Services)  
-infrastructure/     # Repositories, Queue, Workers  
-tests/              # Unit + Integration  
-docker/             # Compose / Dockerfile  
-README.md
+Additional tables (promotions, subscriptions, events) are planned for future development.
 
-🧠 **Design Principles**
-- Clean organization by domain
-- Async-first DB and API
-- Small, testable services
-- Real data flows (queue → worker → DB)
+## Getting Started
 
----
+### Requirements
 
-## 🗃️ Database Modeling
+- Docker and Docker Compose
+- That's it! Everything else runs in containers.
 
-### 🔹 Entities
+### Running the Application
 
-| Table | Purpose |
-|-------|---------|
-| `users` | PII encrypted |
-| `promotions` | Campaign definitions |
-| `subscriptions` | Links users to promotions |
-| `events` | Incoming engagement events |
-| `processed_events` | Idempotency record |
-| `dead_letter_events` | Failed events after retries |
+1. **Start all services:**
 
-📌 Indexes added for subscription lookup, event aggregation, and idempotency.
+```bash
+docker compose up -d
+```
 
----
+This single command will:
+- Start PostgreSQL and wait for it to be healthy
+- Run all database migrations automatically
+- Start the FastAPI application on port 8000
 
-## 🧵 Event Processing Flow
+The first startup takes about 30 seconds. Subsequent restarts are faster.
 
-1. Client sends event to `POST /events/ingest`.
-2. If already processed (idempotency check) → **return 200**.
-3. Else → event enters queue.
-4. Worker consumes and:
-   - Updates stats (hash map aggregation)
-   - Persists data
-5. On failure:
-   - Retries controlled
-   - If retries exhausted → moves to DLQ
+2. **Check that it's running:**
 
-📌 **Rate limiting** is implemented using a **sliding window + deque** per subscription.
+```bash
+docker compose ps
+docker compose logs api
+```
 
----
+You should see messages indicating migrations completed and the API is running.
 
-## 🔐 Security Applied
+3. **Access the API:**
 
-- PII encryption using **`cryptography.Fernet`** (symmetric authenticated encryption)
-- Encryption key provided via the **`PII_ENCRYPTION_KEY`** environment variable
-- Key never logged; PII should not be logged in plaintext
-- Encryption service initialized on startup – app fails fast if key is missing or invalid
-- JWT support can be added later as an optional module
+- API: http://localhost:8000
+- Interactive docs: http://localhost:8000/docs
 
----
+### Stopping the Application
 
-## 🧪 Testing Strategy
+```bash
+docker compose down
+```
 
-| Test Type | Focus |
-|----------|-------|
-| Unit | Domain logic, rate limiting, idempotency |
-| Integration | End-to-end event ingestion + DB operations |
-| Mocking | Fakes for queues, workers, encryption |
-| API | Contract tests with httpx |
+To also remove the database volume (delete all data):
 
----
+```bash
+docker compose down -v
+```
 
-## 🐳 Running the Project
+## Working with the Database
 
-### **Requirements**
-- Docker & Docker Compose
-- Python 3.12+
+### Accessing the Database
 
-### **Generate an Encryption Key**
+Connect to PostgreSQL directly:
 
-Use `cryptography.Fernet` to generate a valid key:
+```bash
+docker exec -it promopulse-db psql -U promopulse -d promopulse
+```
+
+Once connected, you can run SQL queries:
+
+```sql
+-- List all tables
+\dt
+
+-- View users (email will be encrypted)
+SELECT * FROM users;
+
+-- Check current migration version
+SELECT * FROM alembic_version;
+```
+
+### Database Migrations
+
+Migrations run automatically when the API container starts. You don't need to run them manually.
+
+If you need to work with migrations directly:
+
+```bash
+# Check which migration version is currently applied
+docker exec -it promopulse-api alembic current
+
+# View all migrations
+docker exec -it promopulse-api alembic history
+
+# Create a new migration after changing models
+docker exec -it promopulse-api alembic revision --autogenerate -m "describe your changes"
+
+# Roll back one migration (careful with this)
+docker exec -it promopulse-api alembic downgrade -1
+```
+
+## Development
+
+### Making Code Changes
+
+The Docker setup uses volume mounts, so code changes are reflected immediately. You don't need to rebuild the container for Python code changes.
+
+If you change dependencies in `pyproject.toml`, rebuild:
+
+```bash
+docker compose build api
+docker compose up -d
+```
+
+### Generating an Encryption Key
+
+The application needs a Fernet encryption key for PII. Generate one:
 
 ```bash
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-### **Access DB via terminal**
+The key is already set in `docker-compose.yml` for development. For production, use a secret management system.
+
+### Running Tests
+
+Tests run inside the container to match the production environment:
+
 ```bash
-docker exec -it promopulse-db psql -U promopulse -d promopulse
+docker exec -it promopulse-api pytest
 ```
+
+## Troubleshooting
+
+**Container exits immediately:**
+
+Check the logs to see what failed:
+
+```bash
+docker compose logs api
+```
+
+Common issues:
+- Migration errors: Check that your database is healthy and migrations are valid
+- Database not ready: The container should wait for the database automatically, but you can verify with `docker compose ps`
+
+**Cannot connect to the database:**
+
+Make sure the database container is running and healthy:
+
+```bash
+docker compose ps
+docker compose logs db
+```
+
+**Need to start fresh:**
+
+Delete everything and start over:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+Note: This deletes all data in the database.
+
+## Project Goals
+
+This project demonstrates:
+
+- Building a production-quality REST API with FastAPI
+- Proper async database operations with SQLAlchemy
+- Automated database migration handling
+- Secure handling of sensitive data (PII encryption)
+- Clean architecture with separation of concerns
+- Containerization and easy local development setup
+
+The codebase is intentionally kept simple and well-documented to serve as a reference for backend development patterns.

@@ -43,10 +43,13 @@ COPY --from=builder /install /usr/local
 COPY promopulse ./promopulse
 COPY pyproject.toml .
 COPY alembic.ini .
+COPY docker/entrypoint.sh /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh && chown appuser:appuser /app/entrypoint.sh
 
 USER appuser
 
 EXPOSE 8000
 
-# Start FastAPI via Uvicorn
-CMD ["uvicorn", "promopulse.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start FastAPI via entrypoint script (runs migrations first)
+CMD ["/app/entrypoint.sh"]
