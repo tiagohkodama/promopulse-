@@ -6,6 +6,7 @@ sqlalchemy[asyncio]
 asyncpg
 alembic
 cryptography
+email-validator
 
 [dev]
 pytest

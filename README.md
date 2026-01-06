@@ -40,6 +40,7 @@ promopulse/
 
 - **users**: User information with encrypted email addresses
 - **promotions**: Promotional campaigns with lifecycle management (draft/active/ended)
+- **subscriptions**: User subscriptions to promotions with soft delete support
 - **alembic_version**: Migration tracking (managed by Alembic)
 
 ## Features
@@ -117,6 +118,94 @@ curl -X POST http://localhost:8000/promotions/1/status \
   -H "Content-Type: application/json" \
   -d '{"status": "ended"}'
 ```
+
+### Subscription Management
+
+The API supports managing user subscriptions to active promotions with business validation rules.
+
+#### Business Rules
+
+- **Promotion Must Be ACTIVE**: Users can only subscribe to promotions in ACTIVE status
+- **No Duplicate Subscriptions**: Each user can subscribe to a promotion only once (enforced at DB level)
+- **User Must Exist**: User validation ensures referential integrity
+- **Soft Delete**: Subscriptions can be deactivated (not deleted) to preserve history
+
+#### Subscription Lifecycle
+
+```
+Active → Inactive
+```
+
+Subscriptions start as **active** (`is_active=True`) and can be deactivated (soft delete). This preserves subscription history for analytics while allowing users to unsubscribe.
+
+#### API Endpoints
+
+- `POST /subscriptions` - Create new subscription (201)
+- `GET /subscriptions?user_id=X` - List subscriptions for a user
+- `GET /subscriptions?promotion_id=Y` - List subscribers for a promotion
+- `PATCH /subscriptions/{id}/deactivate` - Deactivate subscription
+
+#### Query Parameters
+
+The list endpoint supports flexible filtering:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `user_id` | int | Yes* | Filter subscriptions by user |
+| `promotion_id` | int | Yes* | Filter subscriptions by promotion |
+| `is_active` | bool | No | Filter by active status (true/false) |
+| `limit` | int | No | Maximum items to return (default: 100, max: 1000) |
+| `offset` | int | No | Number of items to skip (default: 0) |
+
+**Note:** Exactly ONE of `user_id` or `promotion_id` must be provided (not both, not neither).
+
+#### Error Handling
+
+The API returns descriptive error codes:
+
+| Status Code | Description |
+|-------------|-------------|
+| 201 | Subscription created successfully |
+| 404 | User or subscription not found |
+| 409 | Duplicate subscription (user already subscribed) |
+| 422 | Business rule violation (promotion not active, already inactive) |
+| 500 | Internal server error |
+
+#### Example Usage
+
+```bash
+# Create a subscription
+curl -X POST http://localhost:8000/subscriptions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": 1,
+    "promotion_id": 2,
+    "metadata": {"source": "web", "campaign": "summer2026"}
+  }'
+
+# List all subscriptions for a user
+curl "http://localhost:8000/subscriptions?user_id=1"
+
+# List only active subscriptions for a user
+curl "http://localhost:8000/subscriptions?user_id=1&is_active=true"
+
+# List all subscribers to a promotion
+curl "http://localhost:8000/subscriptions?promotion_id=2"
+
+# List subscribers with pagination
+curl "http://localhost:8000/subscriptions?promotion_id=2&limit=10&offset=20"
+
+# Deactivate a subscription
+curl -X PATCH http://localhost:8000/subscriptions/1/deactivate
+```
+
+#### Database Indexes
+
+The subscriptions table is optimized for common query patterns:
+
+- Single-column indexes on `user_id`, `promotion_id`, `is_active`
+- Composite indexes for `(user_id, is_active)` and `(promotion_id, is_active)`
+- Unique constraint on `(user_id, promotion_id)` prevents duplicates
 
 ## Getting Started
 
