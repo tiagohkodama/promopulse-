@@ -373,5 +373,3 @@ This project demonstrates:
 - Secure handling of sensitive data (PII encryption)
 - Clean architecture with separation of concerns
 - Containerization and easy local development setup
-
-The codebase is intentionally kept simple and well-documented to serve as a reference for backend development patterns.
